@@ -29,3 +29,9 @@ line(x_fifo, y_fifo);
 
 histogram(rr, 'Normalization', 'pdf');
 line(x_rr, y_rr);
+
+xline(prctile(fifo, 5), '-m', '5%');
+xline(prctile(fifo, 95), '-m', '95%');
+
+xline(prctile(rr, 5), '-m', '5%');
+xline(prctile(rr, 95), '-m', '95%');
