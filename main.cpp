@@ -1,8 +1,9 @@
 #include <algorithm>
 #include <iostream>
+#include <fstream>
+#include <numeric>
 #include <vector>
 #include <random>
-#include <chrono>
 #include <cmath>
 
 template<typename T>
@@ -10,8 +11,8 @@ T square(T value) {
 	return value * value;
 }
 
-using Burst = int;
-using Chrono = size_t;
+using Burst = int64_t;
+using Chrono = uint64_t;
 
 struct Process {
 	operator bool() {
@@ -108,36 +109,34 @@ Schedule generateSchedule(size_t n) {
 }
 
 int main() {
-	constexpr size_t n = 10e3;
+	std::ofstream fifoFile("fifo.csv"), rrFile("rr.csv");
+	if(!fifoFile.is_open() || !rrFile.is_open() ) {
+		std::cerr << "File could not be opened, exiting...\n";
+		std::exit(EXIT_FAILURE);
+	}
 
-	Schedule scheduleA, scheduleB;
-	scheduleA = scheduleB = generateSchedule(n);
-
-	auto printp = [](const Process pr) {
-		std::cout <<  pr.totalBurst << ' ' << pr.remainingBurst << '\n';
-	};
-
-	auto printst = [](const size_t wt) {
-		std::cout <<  wt << '\n';
-	};
-
-	/*
-	std::for_each(scheduleA.processes.begin(), scheduleA.processes.end(), printp);
-	puts("");
-	std::for_each(scheduleA.waitingTime.begin(), scheduleA.waitingTime.end(), printst);
-	std::for_each(scheduleB.processes.begin(), scheduleB.processes.end(), printp);
-	puts("");
-	std::for_each(scheduleB.waitingTime.begin(), scheduleB.waitingTime.end(), printst);
-	*/
-
-	RoundRobin rr;
-	runSchedule(scheduleA, rr);
-	Fifo fifo;
-	runSchedule(scheduleB, fifo);
+	constexpr size_t n = 1e3;
+	constexpr size_t m = 1e3;
 
 	std::cout << "N is " << n << '\n';
-	std::cout << "Round Robin mean: " << scheduleA.mean() << '\n';
-	std::cout << "Round Robin stdev: " << scheduleA.stdev() << '\n';
-	std::cout << "First-in First-out mean: " << scheduleB.mean() << '\n';
-	std::cout << "First-in First-out stdev: " << scheduleB.stdev() << '\n';
+	std::cout << "M is " << m << '\n';
+
+	for(size_t i = 0; i < m; i++) {
+		Schedule scheduleA, scheduleB;
+		scheduleA = scheduleB = generateSchedule(n);
+
+		Fifo fifo;
+		runSchedule(scheduleA, fifo);
+		RoundRobin rr;
+		runSchedule(scheduleB, rr);
+
+		const double fifoMean = scheduleA.mean();
+		const double rrMean = scheduleB.mean();
+		fifoFile << fifoMean << '\n';
+		rrFile << rrMean << '\n';
+
+		std::cout << "i is " << i << '\n';
+		std::cout << "Round Robin mean: " << scheduleA.mean() << '\n';
+		std::cout << "First-in First-out mean: " << scheduleB.mean() << "\n\n";
+	}
 }
