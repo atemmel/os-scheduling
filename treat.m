@@ -12,10 +12,10 @@ sigma_rr   = std(rr);
 err_fifo = sigma_fifo / sqrt(size(fifo,1));
 err_rr   = sigma_rr / sqrt(size(rr,1));
 
-pd_fifo = makedist('Normal', 'mu', mu_fifo, 'sigma', sigma_fifo);
-pd_rr   = makedist('Normal', 'mu', mu_rr, 'sigma', sigma_rr);
-ci_fifo = paramci(pd_fifo,'Alpha', .1);
-ci_rr   = paramci(pd_rr, 'Alpha', .1);
+pd_fifo = fitdist(fifo, 'Normal');
+pd_rr   = fitdist(rr, 'Normal');
+ci_fifo = paramci(pd_fifo,'Alpha', 0.1);
+ci_rr   = paramci(pd_rr, 'Alpha', 0.1);
 
 x_fifo = 4500:6000;
 y_fifo = pdf(pd_fifo, x_fifo);
